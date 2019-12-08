@@ -8,26 +8,32 @@ object Day6 {
 
   def main(args: Array[String]): Unit = {
 
-    val root = Node("COM")
+    val nodes = File.fromFile("src/day6/day6.txt").
+                    map(_.split("\\)").toList).map(n => Node(n(1), n(0)))
 
-    val nodes = File.fromFile("src/day6/day6.txt").map(_.split("\\)").toList)
     for (n <- nodes) {
-      val parent = root.find(n(0))
-      if (parent != null) {
-        parent.children += Node(n(1))
+      val parentOption = nodes.find(_.value == n.parentName)
+      if (parentOption.isDefined) {
+        n.parent = parentOption.get
+      } else {
+        println("Missing parent for " + n)
       }
     }
+    val sum = nodes.foldLeft(0)((acc, n) => {
+      val p = n.path()
+      println("n(" + n.value + ") = " + p)
+      acc + p
+    })
 
-    println(nodes)
-    //val root = Node("COM", MutableList(Node("B"), Node("C")))
+    println("sum " + sum)
 
-    println(root)
-    //println(root.path())
   }
 
 }
 
-case class Node(value:String, children:MutableList[Node] = MutableList()) {
+case class Node(value:String, parentName:String, children:MutableList[Node] = MutableList()) {
+
+  var parent:Node = null
 
   def find(target:String): Node = {
     if (target == value) return this
@@ -40,11 +46,13 @@ case class Node(value:String, children:MutableList[Node] = MutableList()) {
     null
   }
 
-  def path(sum:Int):Int = {
-    var acc = 0
-    children.foreach { it =>
-      acc += 1 + it.path(sum)
+  def path():Int = {
+    var hops = 1
+    var p = parent
+    while (p != null) {
+      hops += 1
+      p = p.parent
     }
-    return acc
+    hops
   }
 }
