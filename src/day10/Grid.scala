@@ -31,20 +31,18 @@ class Grid(raw:List[String]) {
     str.toString()
   }
 
-  def mostVisible():Point = {
-    asteroids.maxBy(visible(_))
-  }
-
-  def visible(asteroid:Point):Int = {
+  def visible(asteroid:Point):List[Point] = {
     var count = 0
+    val visibleAsteroids = new mutable.MutableList[Point]()
     for (a <- asteroids) {
       if (a != asteroid) {
         if (isVisible(a, asteroid)) {
           count += 1
+          visibleAsteroids += a
         }
       }
     }
-    count
+    visibleAsteroids.toList
   }
 
   private def isVisible(first: Point, second: Point):Boolean = {
@@ -57,7 +55,7 @@ class Grid(raw:List[String]) {
                 else if (rise == 0 && run < 0) (0, -1)
                 else reduceSlope(rise, run)
 
-    println(rise + "/" + run + " for " + first + " and " + second + ", reduced: " + slope)
+    //println(rise + "/" + run + " for " + first + " and " + second + ", reduced: " + slope)
 
     var target = first
     while (target != second) {
