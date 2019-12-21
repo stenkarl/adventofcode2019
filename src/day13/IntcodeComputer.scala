@@ -1,10 +1,9 @@
-package day11
+package day13
 
 import scala.collection.mutable.Map
 import scala.io.StdIn
 
-class IntcodeComputer(program:Array[BigInt], inputHandler:() => Int,
-                      outputHandler:Int => Unit) {
+class IntcodeComputer(program:Array[BigInt], outputHandler:Int => Unit) {
 
   var pc:BigInt = 0
 
@@ -88,10 +87,7 @@ class IntcodeComputer(program:Array[BigInt], inputHandler:() => Int,
 
     if (str.length == 1) return 0
     if (str.length == 3 && num >= 2) return 0
-    if (str.length == 4 && num == 3) {
-      //println("parameterMode: " + str + ", " + num)
-      return 1
-    }
+    if (str.length == 4 && num == 3) return 1
     //println("pm " + str + ", num " + num)
     val pm = str.charAt(str.length - (2 + num)).toString.toInt
 
@@ -210,9 +206,8 @@ class IntcodeComputer(program:Array[BigInt], inputHandler:() => Int,
   }
 
   def doInput() = {
-    //print("input> ")
-    //val input = StdIn.readInt()
-    val input = inputHandler()
+    print("input> ")
+    val input = StdIn.readInt()
     //val dest = immediateAt(1)
     val mode = parameterMode(1)
     val dest = if (mode == 1) immediateAt(1) else relativeBase + immediateAt(1)
@@ -224,8 +219,8 @@ class IntcodeComputer(program:Array[BigInt], inputHandler:() => Int,
   def doOutput() = {
     val param1 = parameterValue(1)
     output = param1
-    //print(output + " ")
     outputHandler(output.toInt)
+    //print(output + " ")
     pc += 2
   }
 
