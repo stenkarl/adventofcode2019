@@ -62,7 +62,7 @@ class IntcodeComputer(program:Array[BigInt], inputHandler:() => Int,
     val mode = parameterMode(num)
     val value = if (mode == 0) valueAt(num) else if (mode == 1) immediateAt(num) else relativeAt(num)
 
-    //println("parameterValue(" + num + ") mode(" + mode + ") = " + value)
+    println("parameterValue(" + num + ") mode(" + mode + ") = " + value)
 
     value
   }
@@ -72,13 +72,14 @@ class IntcodeComputer(program:Array[BigInt], inputHandler:() => Int,
 
     relativeBase += param1
 
-    //println("Setting relative base to " + relativeBase)
+    println("Setting relative base to " + relativeBase)
 
     pc += 2
   }
 
   def parseOp(code:BigInt):BigInt = {
     val str = code.toString
+    println("Full Op: " + str)
     if (str.length == 1) return code
     str.substring(str.length - 2).toInt
   }
@@ -128,8 +129,7 @@ class IntcodeComputer(program:Array[BigInt], inputHandler:() => Int,
       pc += 3
     }
 
-    //println("Jump If True (" + param1 + " m = " + mode1 + ", " +
-    //  param2 + " m = " + mode2 + ") = " + shouldJump);
+    println("Jump If True (" + param1 + ", " + param2 + ") = " + shouldJump);
   }
 
   def doJumpIfFalse(): Unit = {
@@ -143,8 +143,7 @@ class IntcodeComputer(program:Array[BigInt], inputHandler:() => Int,
       pc += 3
     }
 
-    //println("Jump If False (" + param1 + " m = " + mode1 + ", " +
-    //  param2 + " m = " + mode2 + ") = " + shouldJump);
+    println("Jump If False (" + param1 + ", " + param2 + ") = " + shouldJump);
   }
 
   def doEqual(): Unit = {
@@ -154,11 +153,14 @@ class IntcodeComputer(program:Array[BigInt], inputHandler:() => Int,
     val isEqual = if (param1 == param2) 1 else 0
 
     val mode = parameterMode(3)
-    val dest = if (mode == 1) immediateAt(3) else relativeBase + immediateAt(3)
+    if (mode != 1 || mode != 2) {
+      println("Unexpected mode " + mode)
+    }
+    val dest = if (mode != 2) immediateAt(3) else relativeBase + immediateAt(3)
 
     write(dest, isEqual)
 
-    //println("Equal (" + param1 + " m = " + mode1 + ", " + param2 + " m = " + mode2 + ") = " + isEqual + " at " + program(pc + 3));
+    println("Equal (" + param1 + ", " + param2 + ") = " + isEqual + " at " + dest);
 
     pc += 4
   }
@@ -170,11 +172,11 @@ class IntcodeComputer(program:Array[BigInt], inputHandler:() => Int,
     val isLess = if (param1 < param2) 1 else 0
 
     val mode = parameterMode(3)
-    val dest = if (mode == 1) immediateAt(3) else relativeBase + immediateAt(3)
+    val dest = if (mode != 2) immediateAt(3) else relativeBase + immediateAt(3)
 
     write(dest, isLess)
 
-    //println("Less (" + param1 + " m = " + mode1 + ", " + param2 + " m = " + mode2 + ") < " + isLess + " at " + program(pc + 3));
+    println("Less (" + param1 + ", " + param2 + ") < " + isLess + " at " + dest);
 
     pc += 4
   }
@@ -186,11 +188,11 @@ class IntcodeComputer(program:Array[BigInt], inputHandler:() => Int,
     val sum = param1 + param2
     //write(immediateAt(3), sum)
     val mode = parameterMode(3)
-    val dest = if (mode == 1) immediateAt(3) else relativeBase + immediateAt(3)
+    val dest = if (mode != 2) immediateAt(3) else relativeBase + immediateAt(3)
 
     write(dest, sum)
 
-    //println("Add (" + param1 + " m = " + mode1 + ", " + param2 + " m = " + mode2 + ") = " + sum + " at " + program(pc + 3));
+    println("Add (" + param1 + ", " + param2 + ") = " + sum + " at " + dest);
 
     pc += 4
   }
@@ -201,10 +203,10 @@ class IntcodeComputer(program:Array[BigInt], inputHandler:() => Int,
     val product = param1 * param2
 
     val mode = parameterMode(3)
-    val dest = if (mode == 1) immediateAt(3) else relativeBase + immediateAt(3)
+    val dest = if (mode != 2) immediateAt(3) else relativeBase + immediateAt(3)
 
     write(dest, product)
-    //println("Mult (" + param1 + ", " + param2 + ") = " + product + " at " + program(program(pc + 3)));
+    println("Mult (" + param1 + ", " + param2 + ") = " + product + " at " + dest)
 
     pc += 4
   }
@@ -215,7 +217,7 @@ class IntcodeComputer(program:Array[BigInt], inputHandler:() => Int,
     val input = inputHandler()
     //val dest = immediateAt(1)
     val mode = parameterMode(1)
-    val dest = if (mode == 1) immediateAt(1) else relativeBase + immediateAt(1)
+    val dest = if (mode != 2) immediateAt(1) else relativeBase + immediateAt(1)
     //println("dest = " + dest)
     write(dest, input)
     pc += 2

@@ -20,7 +20,7 @@ object Day11 {
 
     val output = new IntcodeComputer(program, inputHandler, outputHandler).run()
 
-    //print(output)
+    print(output)
 
     printTiles()
   }
@@ -34,7 +34,8 @@ object Day11 {
   }
 
   def outputHandler(output:Int):Unit = {
-    //println("output = " + output)
+    println("output = " + output)
+
     if (paintMode) {
       paint(output)
     } else {
@@ -42,6 +43,8 @@ object Day11 {
       move()
     }
     paintMode = !paintMode
+    
+
   }
 
   def paint(color:Int): Unit = {
