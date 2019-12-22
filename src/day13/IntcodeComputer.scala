@@ -3,7 +3,7 @@ package day13
 import scala.collection.mutable.Map
 import scala.io.StdIn
 
-class IntcodeComputer(program:Array[BigInt], outputHandler:Int => Unit) {
+class IntcodeComputer(program:Array[BigInt], inputHanlder:() => Int, outputHandler:Int => Unit) {
 
   var pc:BigInt = 0
 
@@ -150,7 +150,7 @@ class IntcodeComputer(program:Array[BigInt], outputHandler:Int => Unit) {
     val isEqual = if (param1 == param2) 1 else 0
 
     val mode = parameterMode(3)
-    val dest = if (mode == 1) immediateAt(3) else relativeBase + immediateAt(3)
+    val dest = if (mode != 2) immediateAt(3) else relativeBase + immediateAt(3)
 
     write(dest, isEqual)
 
@@ -166,7 +166,7 @@ class IntcodeComputer(program:Array[BigInt], outputHandler:Int => Unit) {
     val isLess = if (param1 < param2) 1 else 0
 
     val mode = parameterMode(3)
-    val dest = if (mode == 1) immediateAt(3) else relativeBase + immediateAt(3)
+    val dest = if (mode != 2) immediateAt(3) else relativeBase + immediateAt(3)
 
     write(dest, isLess)
 
@@ -182,7 +182,7 @@ class IntcodeComputer(program:Array[BigInt], outputHandler:Int => Unit) {
     val sum = param1 + param2
     //write(immediateAt(3), sum)
     val mode = parameterMode(3)
-    val dest = if (mode == 1) immediateAt(3) else relativeBase + immediateAt(3)
+    val dest = if (mode != 2) immediateAt(3) else relativeBase + immediateAt(3)
 
     write(dest, sum)
 
@@ -197,7 +197,7 @@ class IntcodeComputer(program:Array[BigInt], outputHandler:Int => Unit) {
     val product = param1 * param2
 
     val mode = parameterMode(3)
-    val dest = if (mode == 1) immediateAt(3) else relativeBase + immediateAt(3)
+    val dest = if (mode != 2) immediateAt(3) else relativeBase + immediateAt(3)
 
     write(dest, product)
     //println("Mult (" + param1 + ", " + param2 + ") = " + product + " at " + program(program(pc + 3)));
@@ -206,11 +206,11 @@ class IntcodeComputer(program:Array[BigInt], outputHandler:Int => Unit) {
   }
 
   def doInput() = {
-    print("input> ")
-    val input = StdIn.readInt()
+    val input = inputHanlder()
+
     //val dest = immediateAt(1)
     val mode = parameterMode(1)
-    val dest = if (mode == 1) immediateAt(1) else relativeBase + immediateAt(1)
+    val dest = if (mode != 2) immediateAt(1) else relativeBase + immediateAt(1)
     //println("dest = " + dest)
     write(dest, input)
     pc += 2

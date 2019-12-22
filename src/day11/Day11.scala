@@ -43,7 +43,7 @@ object Day11 {
       move()
     }
     paintMode = !paintMode
-    
+
 
   }
 
