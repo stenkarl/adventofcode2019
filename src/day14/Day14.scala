@@ -1,64 +1,142 @@
 package day14
 
+import util.File
+
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
 object Day14 {
 
+  val recipePath = "src/day14/day14.txt"
+
   var inventory:mutable.Map[String, Ingredient] = mutable.Map[String, Ingredient]()
+  var used:mutable.Map[String, Ingredient] = mutable.Map[String, Ingredient]()
+
+  val recipes = ListBuffer[Recipe]()
 
   def main(args: Array[String]): Unit = {
     println("Day 14")
 
-    val fuel = Recipe("FUEL", List(Ingredient("A", 7), Ingredient("E", 1)))
-    val e = Recipe("E", List(Ingredient("A", 7), Ingredient("D", 1)))
-    val b = Recipe("B", List(Ingredient("ORE", 1)))
-
-    inventory.put("ORE", Ingredient("ORE", 10))
+    inventory.put("ORE", Ingredient("ORE", 1000000000))
 
     printInventory()
-    println (fuel)
-    println(e)
-    println(b)
 
-    make(b)
+    createRecipes()
+    println(recipes)
+
+    //shop(lookupRecipe("FUEL"))
+    make(lookupRecipe("FUEL"))
+    printUsed()
+  }
+
+  def lookupRecipe(name:String):Recipe = {
+    val recipe = recipes.find(_.name.name == name)
+    if (!recipe.isDefined) {
+      println("ERROR: lookupRecipe failed for " + name)
+      System.exit(0)
+    }
+    recipe.get
+  }
+
+  def shop(recipe: Recipe):Unit = {
+    println("shop: " + recipe.name)
+    for (i <- recipe.ingredients) {
+      val recipe = recipes.find(_.name.name == i.name)
+      if (recipe.isDefined) {
+        shop(recipe.get)
+      } else {
+        println("Basic Ingredient " + i)
+      }
+    }
+  }
+
+  def createRecipes(): Unit = {
+    val file = File.fromFile(recipePath)
+
+    file.foreach { line =>
+      val parts = line.split(" => ")
+      val creates = ingredientFromString(parts(1))
+      val ingredients:List[Ingredient] = parts(0).split(", ").map(ingredientFromString).toList
+
+      recipes += Recipe(creates, ingredients)
+    }
+  }
+
+  def ingredientFromString(str:String):Ingredient = {
+    val parts = str.split(" ")
+    Ingredient(parts(1), parts(0).toInt)
   }
 
   def make(recipe:Recipe):Unit = {
-    println("Lets make a(n) " + recipe.name)
-    if (checkForIngredients(recipe)) {
-      println("Well, we have enough of the right ingredients. So lets do it!")
-    }
+    println("Lets make " + recipe.name)
+    checkForIngredients(recipe)
+    println("Well, we have enough of the right ingredients to make " + recipe.name + ". So lets do it!")
     useIngredients(recipe)
-    val newIngredient = Ingredient(recipe.name, 1)
-    inventory.put(recipe.name, newIngredient)
+    addToInventory(recipe.name)
 
-    println("It's made! Here's your inventory now...")
+    println("Made " + recipe.name + ". Here's your inventory now...")
     printInventory()
+    printUsed()
+  }
+
+  def addToInventory(i:Ingredient):Unit = {
+    if (inventory.contains(i.name)) {
+      val updated = Ingredient(i.name, inventory(i.name).amount + i.amount)
+      inventory(i.name) = updated
+    } else {
+      inventory(i.name) = i
+    }
   }
 
   def useIngredients(recipe: Recipe):Unit = {
     for (i <- recipe.ingredients) {
+      while (!hasEnough(i)) {
+        make(lookupRecipe(i.name))
+      }
       val ingredient = inventory(i.name)
       val updated = Ingredient(i.name, ingredient.amount - i.amount)
-      inventory(i.name) = updated
+      if (updated.amount > 0) {
+        inventory(i.name) = updated
+      } else if (updated.amount == 0) {
+        inventory.remove(i.name)
+      } else {
+        println("ERROR: Negative ingredients: " + updated)
+      }
+      updateUsed(i)
     }
   }
 
-  def checkForIngredients(recipe:Recipe):Boolean = {
-    var canMake = true
+  def updateUsed(i:Ingredient):Unit = {
+    if (used.contains(i.name)) {
+      val updated = Ingredient(i.name, used(i.name).amount + i.amount)
+      used(i.name) = updated
+    } else {
+      used(i.name) = i
+    }
+  }
+
+  def checkForIngredients(recipe:Recipe):Unit = {
     for (i <- recipe.ingredients) {
-      if (inventory.contains(i.name)) {
-        if (i.amount > inventory(i.name).amount) {
-          println ("You don't have enough " + i.name + ". You have " + inventory(i.name).amount +
-                  " but you need " + i.amount)
-          canMake = false
-        }
-      } else {
-        println ("You don't even have any " + i.name + ". You need " + i.amount)
-        canMake = false
+      println("Checking for " + i)
+      while (!hasEnough(i)) {
+        make(lookupRecipe(i.name))
       }
     }
-    canMake
+  }
+
+  def hasEnough(i:Ingredient):Boolean = {
+    if (inventory.contains(i.name)) {
+      if (i.amount > inventory(i.name).amount) {
+        println ("You don't have enough " + i.name + ". You have " + inventory(i.name).amount +
+          " but you need " + i.amount)
+        return false
+      }
+    } else {
+      println ("You don't even have any " + i.name + ". You need " + i.amount)
+      return false
+    }
+    println("We have enough " + i)
+    true
   }
 
   def printInventory(): Unit = {
@@ -68,23 +146,28 @@ object Day14 {
     }
   }
 
+  def printUsed(): Unit = {
+    println("You used " + used.size + " type(s) of ingredients in your making of things:")
+    for (i <- used.keys) {
+      println("  " + used(i))
+    }
+  }
+
 }
 
-case class Recipe(name:String, ingredients:List[Ingredient]) {
+case class Recipe(name:Ingredient, ingredients:List[Ingredient]) {
 
   override def toString: String = {
-    val str = new StringBuilder("To Make a(n) " + name + " you need the following ingredients:\n")
+    val str = new StringBuilder("Recipe: To Make " + name.amount + " " + name.name +
+                                " you need the following: ")
 
-    for (i <- ingredients) {
-      if (i.amount > 1) {
-        str.append("  " + i.amount + " " + i.name + "s\n")
-      } else {
-        str.append("  " + i.amount + " " + i.name + "\n")
-      }
-    }
+    str.append(ingredients.mkString(", "))
 
     str.toString()
   }
 }
 
-case class Ingredient(name:String, amount:Int)
+case class Ingredient(name:String, amount:Int) {
+
+  override def toString: String = amount + " " + name + (if (amount > 1) "s" else "")
+}
