@@ -17,15 +17,24 @@ object Day14 {
   def main(args: Array[String]): Unit = {
     println("Day 14")
 
-    inventory.put("ORE", Ingredient("ORE", 1000000000))
+    inventory.put("ORE", Ingredient("ORE", BigInt("1000000000000")))
 
     printInventory()
 
     createRecipes()
-    println(recipes)
+    //println(recipes)
 
     //shop(lookupRecipe("FUEL"))
-    make(lookupRecipe("FUEL"))
+
+    var loop = 0
+    while (true) {
+      make(lookupRecipe("FUEL"))
+      loop += 1
+      if (loop % 1000000 == 0) {
+        println(inventory("ORE"))
+      }
+    }
+    printInventory()
     printUsed()
   }
 
@@ -33,6 +42,8 @@ object Day14 {
     val recipe = recipes.find(_.name.name == name)
     if (!recipe.isDefined) {
       println("ERROR: lookupRecipe failed for " + name)
+      printInventory()
+      printUsed()
       System.exit(0)
     }
     recipe.get
@@ -68,15 +79,15 @@ object Day14 {
   }
 
   def make(recipe:Recipe):Unit = {
-    println("Lets make " + recipe.name)
+    //println("Lets make " + recipe.name)
     checkForIngredients(recipe)
-    println("Well, we have enough of the right ingredients to make " + recipe.name + ". So lets do it!")
+    //println("Well, we have enough of the right ingredients to make " + recipe.name + ". So lets do it!")
     useIngredients(recipe)
     addToInventory(recipe.name)
 
-    println("Made " + recipe.name + ". Here's your inventory now...")
-    printInventory()
-    printUsed()
+    //println("Made " + recipe.name + ". Here's your inventory now...")
+    //printInventory()
+    //printUsed()
   }
 
   def addToInventory(i:Ingredient):Unit = {
@@ -117,7 +128,7 @@ object Day14 {
 
   def checkForIngredients(recipe:Recipe):Unit = {
     for (i <- recipe.ingredients) {
-      println("Checking for " + i)
+      //println("Checking for " + i)
       while (!hasEnough(i)) {
         make(lookupRecipe(i.name))
       }
@@ -127,15 +138,15 @@ object Day14 {
   def hasEnough(i:Ingredient):Boolean = {
     if (inventory.contains(i.name)) {
       if (i.amount > inventory(i.name).amount) {
-        println ("You don't have enough " + i.name + ". You have " + inventory(i.name).amount +
-          " but you need " + i.amount)
+        //println ("You don't have enough " + i.name + ". You have " + inventory(i.name).amount +
+        //  " but you need " + i.amount)
         return false
       }
     } else {
-      println ("You don't even have any " + i.name + ". You need " + i.amount)
+      //println ("You don't even have any " + i.name + ". You need " + i.amount)
       return false
     }
-    println("We have enough " + i)
+    //println("We have enough " + i)
     true
   }
 
@@ -167,7 +178,7 @@ case class Recipe(name:Ingredient, ingredients:List[Ingredient]) {
   }
 }
 
-case class Ingredient(name:String, amount:Int) {
+case class Ingredient(name:String, amount:BigInt) {
 
   override def toString: String = amount + " " + name + (if (amount > 1) "s" else "")
 }
