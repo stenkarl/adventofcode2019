@@ -1,7 +1,6 @@
-package day11
+package day17
 
 import scala.collection.mutable.Map
-import scala.io.StdIn
 
 class IntcodeComputer(program:Array[BigInt], inputHandler:() => Int,
                       outputHandler:Int => Unit) {
@@ -153,9 +152,9 @@ class IntcodeComputer(program:Array[BigInt], inputHandler:() => Int,
     val isEqual = if (param1 == param2) 1 else 0
 
     val mode = parameterMode(3)
-    if (mode != 1 || mode != 2) {
-      println("Unexpected mode " + mode)
-    }
+    //if (mode != 1 && mode != 2) {
+    //  println("Unexpected mode " + mode)
+    //}
     val dest = if (mode != 2) immediateAt(3) else relativeBase + immediateAt(3)
 
     write(dest, isEqual)
